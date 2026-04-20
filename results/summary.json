@@ -1,0 +1,414 @@
+{
+  "num_seeds": 30,
+  "num_disagreements": 30,
+  "coverage": {
+    "model_a": 1.0,
+    "model_b": 1.0,
+    "average": 1.0
+  },
+  "disagreements": [
+    {
+      "sample_index": 0,
+      "true_label": "horse",
+      "model_a": {
+        "label": "bird",
+        "confidence": 0.19967852532863617
+      },
+      "model_b": {
+        "label": "cat",
+        "confidence": 0.34495657682418823
+      },
+      "l_inf_delta": 0.0,
+      "visualization": "/data/home/ijg2603/UOS/\uc2e0\ub8b0\ud560\uc218\uc788\ub294\uc778\uacf5\uc9c0\ub2a5/assignment2/Reliable-and-Trustworthy-AI_2/results/disagreement_01.png"
+    },
+    {
+      "sample_index": 1,
+      "true_label": "deer",
+      "model_a": {
+        "label": "deer",
+        "confidence": 0.43208548426628113
+      },
+      "model_b": {
+        "label": "bird",
+        "confidence": 0.32272788882255554
+      },
+      "l_inf_delta": 0.010000020265579224,
+      "visualization": "/data/home/ijg2603/UOS/\uc2e0\ub8b0\ud560\uc218\uc788\ub294\uc778\uacf5\uc9c0\ub2a5/assignment2/Reliable-and-Trustworthy-AI_2/results/disagreement_02.png"
+    },
+    {
+      "sample_index": 2,
+      "true_label": "truck",
+      "model_a": {
+        "label": "airplane",
+        "confidence": 0.19464796781539917
+      },
+      "model_b": {
+        "label": "truck",
+        "confidence": 0.508063018321991
+      },
+      "l_inf_delta": 0.010000020265579224,
+      "visualization": "/data/home/ijg2603/UOS/\uc2e0\ub8b0\ud560\uc218\uc788\ub294\uc778\uacf5\uc9c0\ub2a5/assignment2/Reliable-and-Trustworthy-AI_2/results/disagreement_03.png"
+    },
+    {
+      "sample_index": 3,
+      "true_label": "deer",
+      "model_a": {
+        "label": "bird",
+        "confidence": 0.35897332429885864
+      },
+      "model_b": {
+        "label": "deer",
+        "confidence": 0.19952057301998138
+      },
+      "l_inf_delta": 0.010000020265579224,
+      "visualization": "/data/home/ijg2603/UOS/\uc2e0\ub8b0\ud560\uc218\uc788\ub294\uc778\uacf5\uc9c0\ub2a5/assignment2/Reliable-and-Trustworthy-AI_2/results/disagreement_04.png"
+    },
+    {
+      "sample_index": 4,
+      "true_label": "automobile",
+      "model_a": {
+        "label": "automobile",
+        "confidence": 0.3495369553565979
+      },
+      "model_b": {
+        "label": "ship",
+        "confidence": 0.2949351966381073
+      },
+      "l_inf_delta": 0.0,
+      "visualization": "/data/home/ijg2603/UOS/\uc2e0\ub8b0\ud560\uc218\uc788\ub294\uc778\uacf5\uc9c0\ub2a5/assignment2/Reliable-and-Trustworthy-AI_2/results/disagreement_05.png"
+    },
+    {
+      "sample_index": 5,
+      "true_label": "frog",
+      "model_a": {
+        "label": "truck",
+        "confidence": 0.4343525767326355
+      },
+      "model_b": {
+        "label": "airplane",
+        "confidence": 0.1967923641204834
+      },
+      "l_inf_delta": 0.010000020265579224
+    },
+    {
+      "sample_index": 6,
+      "true_label": "cat",
+      "model_a": {
+        "label": "bird",
+        "confidence": 0.25701904296875
+      },
+      "model_b": {
+        "label": "frog",
+        "confidence": 0.35417357087135315
+      },
+      "l_inf_delta": 0.010000020265579224
+    },
+    {
+      "sample_index": 7,
+      "true_label": "cat",
+      "model_a": {
+        "label": "frog",
+        "confidence": 0.36429259181022644
+      },
+      "model_b": {
+        "label": "cat",
+        "confidence": 0.22199082374572754
+      },
+      "l_inf_delta": 0.010000020265579224
+    },
+    {
+      "sample_index": 8,
+      "true_label": "ship",
+      "model_a": {
+        "label": "truck",
+        "confidence": 0.3368467092514038
+      },
+      "model_b": {
+        "label": "ship",
+        "confidence": 0.5682045817375183
+      },
+      "l_inf_delta": 0.010000020265579224
+    },
+    {
+      "sample_index": 9,
+      "true_label": "automobile",
+      "model_a": {
+        "label": "automobile",
+        "confidence": 0.3455532491207123
+      },
+      "model_b": {
+        "label": "truck",
+        "confidence": 0.1767183542251587
+      },
+      "l_inf_delta": 0.0
+    },
+    {
+      "sample_index": 10,
+      "true_label": "deer",
+      "model_a": {
+        "label": "bird",
+        "confidence": 0.3824501037597656
+      },
+      "model_b": {
+        "label": "deer",
+        "confidence": 0.44011616706848145
+      },
+      "l_inf_delta": 0.010000020265579224
+    },
+    {
+      "sample_index": 11,
+      "true_label": "automobile",
+      "model_a": {
+        "label": "automobile",
+        "confidence": 0.2951855957508087
+      },
+      "model_b": {
+        "label": "airplane",
+        "confidence": 0.3760893940925598
+      },
+      "l_inf_delta": 0.0
+    },
+    {
+      "sample_index": 12,
+      "true_label": "bird",
+      "model_a": {
+        "label": "deer",
+        "confidence": 0.17594896256923676
+      },
+      "model_b": {
+        "label": "cat",
+        "confidence": 0.1881314069032669
+      },
+      "l_inf_delta": 0.0
+    },
+    {
+      "sample_index": 13,
+      "true_label": "automobile",
+      "model_a": {
+        "label": "cat",
+        "confidence": 0.19505803287029266
+      },
+      "model_b": {
+        "label": "ship",
+        "confidence": 0.20930784940719604
+      },
+      "l_inf_delta": 0.010000020265579224
+    },
+    {
+      "sample_index": 14,
+      "true_label": "ship",
+      "model_a": {
+        "label": "bird",
+        "confidence": 0.14494605362415314
+      },
+      "model_b": {
+        "label": "cat",
+        "confidence": 0.2636997103691101
+      },
+      "l_inf_delta": 0.010000020265579224
+    },
+    {
+      "sample_index": 15,
+      "true_label": "horse",
+      "model_a": {
+        "label": "horse",
+        "confidence": 0.5631572008132935
+      },
+      "model_b": {
+        "label": "truck",
+        "confidence": 0.25393202900886536
+      },
+      "l_inf_delta": 0.02000001072883606
+    },
+    {
+      "sample_index": 16,
+      "true_label": "truck",
+      "model_a": {
+        "label": "truck",
+        "confidence": 0.1936229169368744
+      },
+      "model_b": {
+        "label": "ship",
+        "confidence": 0.8411006331443787
+      },
+      "l_inf_delta": 0.02000001072883606
+    },
+    {
+      "sample_index": 17,
+      "true_label": "airplane",
+      "model_a": {
+        "label": "ship",
+        "confidence": 0.4724442660808563
+      },
+      "model_b": {
+        "label": "airplane",
+        "confidence": 0.42951568961143494
+      },
+      "l_inf_delta": 0.0
+    },
+    {
+      "sample_index": 18,
+      "true_label": "airplane",
+      "model_a": {
+        "label": "ship",
+        "confidence": 0.371919184923172
+      },
+      "model_b": {
+        "label": "truck",
+        "confidence": 0.5659677982330322
+      },
+      "l_inf_delta": 0.010000020265579224
+    },
+    {
+      "sample_index": 19,
+      "true_label": "airplane",
+      "model_a": {
+        "label": "ship",
+        "confidence": 0.5467389822006226
+      },
+      "model_b": {
+        "label": "truck",
+        "confidence": 0.3040967583656311
+      },
+      "l_inf_delta": 0.0
+    },
+    {
+      "sample_index": 20,
+      "true_label": "deer",
+      "model_a": {
+        "label": "truck",
+        "confidence": 0.1951136440038681
+      },
+      "model_b": {
+        "label": "horse",
+        "confidence": 0.6013297438621521
+      },
+      "l_inf_delta": 0.03000001609325409
+    },
+    {
+      "sample_index": 21,
+      "true_label": "ship",
+      "model_a": {
+        "label": "frog",
+        "confidence": 0.335903137922287
+      },
+      "model_b": {
+        "label": "cat",
+        "confidence": 0.16662418842315674
+      },
+      "l_inf_delta": 0.010000020265579224
+    },
+    {
+      "sample_index": 22,
+      "true_label": "ship",
+      "model_a": {
+        "label": "frog",
+        "confidence": 0.22294843196868896
+      },
+      "model_b": {
+        "label": "bird",
+        "confidence": 0.21306262910366058
+      },
+      "l_inf_delta": 0.0
+    },
+    {
+      "sample_index": 23,
+      "true_label": "automobile",
+      "model_a": {
+        "label": "ship",
+        "confidence": 0.6679821014404297
+      },
+      "model_b": {
+        "label": "automobile",
+        "confidence": 0.3071196675300598
+      },
+      "l_inf_delta": 0.010000020265579224
+    },
+    {
+      "sample_index": 24,
+      "true_label": "frog",
+      "model_a": {
+        "label": "frog",
+        "confidence": 0.3138287663459778
+      },
+      "model_b": {
+        "label": "cat",
+        "confidence": 0.2093217521905899
+      },
+      "l_inf_delta": 0.0
+    },
+    {
+      "sample_index": 25,
+      "true_label": "dog",
+      "model_a": {
+        "label": "truck",
+        "confidence": 0.16572269797325134
+      },
+      "model_b": {
+        "label": "horse",
+        "confidence": 0.17458026111125946
+      },
+      "l_inf_delta": 0.0
+    },
+    {
+      "sample_index": 26,
+      "true_label": "ship",
+      "model_a": {
+        "label": "airplane",
+        "confidence": 0.4259393811225891
+      },
+      "model_b": {
+        "label": "ship",
+        "confidence": 0.8790574669837952
+      },
+      "l_inf_delta": 0.03000001609325409
+    },
+    {
+      "sample_index": 27,
+      "true_label": "truck",
+      "model_a": {
+        "label": "truck",
+        "confidence": 0.4154140055179596
+      },
+      "model_b": {
+        "label": "automobile",
+        "confidence": 0.3340274393558502
+      },
+      "l_inf_delta": 0.0
+    },
+    {
+      "sample_index": 28,
+      "true_label": "cat",
+      "model_a": {
+        "label": "frog",
+        "confidence": 0.17361518740653992
+      },
+      "model_b": {
+        "label": "cat",
+        "confidence": 0.40508848428726196
+      },
+      "l_inf_delta": 0.02000001072883606
+    },
+    {
+      "sample_index": 29,
+      "true_label": "horse",
+      "model_a": {
+        "label": "truck",
+        "confidence": 0.5297009348869324
+      },
+      "model_b": {
+        "label": "ship",
+        "confidence": 0.16227278113365173
+      },
+      "l_inf_delta": 0.010000020265579224
+    }
+  ],
+  "settings": {
+    "iterations": 20,
+    "step": 0.01,
+    "epsilon": 0.12,
+    "weight_diff": 1.0,
+    "weight_nc": 0.2,
+    "coverage_threshold": 0.2
+  }
+}
