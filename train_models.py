@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import random
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -19,16 +20,16 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-dir", default="../../assignment1/data")
     parser.add_argument("--models-dir", default="models")
-    parser.add_argument("--epochs", type=int, default=3)
+    parser.add_argument("--epochs", type=int, default=2)
     parser.add_argument("--batch-size", type=int, default=128)
-    parser.add_argument("--lr", type=float, default=0.05)
+    parser.add_argument("--lr", type=float, default=0.005)
     parser.add_argument("--weight-decay", type=float, default=5e-4)
-    parser.add_argument("--train-limit", type=int, default=10000)
-    parser.add_argument("--test-limit", type=int, default=2000)
-    parser.add_argument("--num-workers", type=int, default=2)
+    parser.add_argument("--train-limit", type=int, default=2048)
+    parser.add_argument("--test-limit", type=int, default=512)
+    parser.add_argument("--num-workers", type=int, default=0)
     parser.add_argument("--seeds", type=int, nargs="+", default=[1, 2])
     parser.add_argument("--download", action="store_true")
-    parser.add_argument("--device", default="cpu")
+    parser.add_argument("--device", default="auto")
     return parser.parse_args()
 
 
@@ -45,6 +46,18 @@ def set_seed(seed: int) -> None:
     torch.manual_seed(seed)
 
 
+def resolve_device(device_name: str) -> torch.device:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        cuda_available = torch.cuda.is_available()
+    if device_name == "auto":
+        return torch.device("cuda" if cuda_available else "cpu")
+    device = torch.device(device_name)
+    if device.type == "cuda" and not cuda_available:
+        raise RuntimeError("CUDA was requested, but no CUDA device is available")
+    return device
+
+
 def subset_dataset(dataset: torch.utils.data.Dataset, limit: int | None, seed: int) -> torch.utils.data.Dataset:
     if limit is None or limit <= 0 or limit >= len(dataset):
         return dataset
@@ -53,7 +66,12 @@ def subset_dataset(dataset: torch.utils.data.Dataset, limit: int | None, seed: i
     return Subset(dataset, indices)
 
 
-def make_loaders(args: argparse.Namespace, repo_dir: Path, seed: int) -> tuple[DataLoader, DataLoader]:
+def make_loaders(
+    args: argparse.Namespace,
+    repo_dir: Path,
+    seed: int,
+    device: torch.device,
+) -> tuple[DataLoader, DataLoader]:
     data_dir = resolve_path(repo_dir, args.data_dir)
     train_transform = transforms.Compose(
         [
@@ -82,14 +100,14 @@ def make_loaders(args: argparse.Namespace, repo_dir: Path, seed: int) -> tuple[D
         batch_size=args.batch_size,
         shuffle=True,
         num_workers=args.num_workers,
-        pin_memory=args.device.startswith("cuda"),
+        pin_memory=device.type == "cuda",
     )
     test_loader = DataLoader(
         test_set,
         batch_size=args.batch_size,
         shuffle=False,
         num_workers=args.num_workers,
-        pin_memory=args.device.startswith("cuda"),
+        pin_memory=device.type == "cuda",
     )
     return train_loader, test_loader
 
@@ -110,8 +128,9 @@ def evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> floa
 
 def train_one(seed: int, args: argparse.Namespace, repo_dir: Path) -> Path:
     set_seed(seed)
-    device = torch.device(args.device)
-    train_loader, test_loader = make_loaders(args, repo_dir, seed)
+    device = resolve_device(args.device)
+    print(f"device={device}")
+    train_loader, test_loader = make_loaders(args, repo_dir, seed, device)
     model = build_model(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(

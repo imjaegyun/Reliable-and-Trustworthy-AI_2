@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -43,7 +44,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--download", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--device", default="cpu")
+    parser.add_argument("--device", default="auto")
     return parser.parse_args()
 
 
@@ -65,6 +66,18 @@ def set_seed(seed: int) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+
+
+def resolve_device(device_name: str) -> torch.device:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        cuda_available = torch.cuda.is_available()
+    if device_name == "auto":
+        return torch.device("cuda" if cuda_available else "cpu")
+    device = torch.device(device_name)
+    if device.type == "cuda" and not cuda_available:
+        raise RuntimeError("CUDA was requested, but no CUDA device is available")
+    return device
 
 
 def validate_deepxplore_dir(deepxplore_dir: Path) -> None:
@@ -207,7 +220,7 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
         raise ValueError("batch-size must be 1 for gradient-based input generation")
 
     set_seed(args.seed)
-    device = torch.device(args.device)
+    device = resolve_device(args.device)
     deepxplore_dir = resolve_path(repo_dir, args.deepxplore_dir)
     model_a_path = resolve_path(repo_dir, args.model_a)
     model_b_path = resolve_path(repo_dir, args.model_b)
