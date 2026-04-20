@@ -37,7 +37,6 @@ class CIFAR10ResNet50(nn.Module):
         super().__init__()
         self.normalize = NormalizeLayer(CIFAR10_MEAN, CIFAR10_STD)
         self.backbone = resnet50(weights=None)
-        # CIFAR-10 images are 32x32, so the ImageNet stem is replaced.
         self.backbone.conv1 = nn.Conv2d(
             3,
             64,
@@ -47,7 +46,6 @@ class CIFAR10ResNet50(nn.Module):
             bias=False,
         )
         self.backbone.maxpool = nn.Identity()
-        # Replace ImageNet's 1000-way classifier with a 10-way CIFAR-10 head.
         self.backbone.fc = nn.Linear(self.backbone.fc.in_features, len(CIFAR10_CLASSES))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -68,7 +66,6 @@ def load_checkpoint(path: str, device: torch.device | str = "cpu") -> CIFAR10Res
     if any(key.startswith("module.") for key in state_dict):
         state_dict = {key.removeprefix("module."): value for key, value in state_dict.items()}
     model.load_state_dict(state_dict)
-    # Only the input image is optimized during DeepXplore generation.
     for parameter in model.parameters():
         parameter.requires_grad_(False)
     model.eval()
