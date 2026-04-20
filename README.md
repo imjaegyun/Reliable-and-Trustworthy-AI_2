@@ -8,6 +8,14 @@ conda activate rtai-a2
 pip install -r requirements.txt
 ```
 
+or
+
+```bash
+cd Reliable-and-Trustworthy-AI_2
+
+./setup_and_run.sh
+```
+
 The PyTorch packages in `requirements.txt` use CUDA 11.8 wheels.
 
 ## DeepXplore
