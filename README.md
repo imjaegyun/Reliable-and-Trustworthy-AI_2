@@ -64,10 +64,10 @@ The run writes:
 - `results/disagreement_03.png`
 - `results/disagreement_04.png`
 - `results/disagreement_05.png`
-- `results/disagreement_by_threshold.json`
-- `results/disagreement_t0p2_*.png`
-- `results/disagreement_t0p5_*.png`
-- `results/disagreement_t0p9_*.png`
+- `results/threshold/disagreement_by_threshold.json`
+- `results/threshold/disagreement_t0p2_*.png`
+- `results/threshold/disagreement_t0p5_*.png`
+- `results/threshold/disagreement_t0p9_*.png`
 
 ## Current Results
 

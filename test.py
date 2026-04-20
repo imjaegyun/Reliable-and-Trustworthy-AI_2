@@ -250,6 +250,7 @@ def run_deepxplore(
     coverage_threshold: float | None = None,
     write_summary: bool = True,
     save_visualizations: bool = True,
+    visualization_dir: Path | None = None,
     visualization_prefix: str = "disagreement",
     progress_desc: str = "deepxplore",
 ) -> dict:
@@ -264,9 +265,13 @@ def run_deepxplore(
     model_a_path = resolve_path(repo_dir, args.model_a)
     model_b_path = resolve_path(repo_dir, args.model_b)
     results_dir = resolve_path(repo_dir, args.results_dir)
+    if visualization_dir is None:
+        visualization_dir = results_dir
     validate_deepxplore_dir(deepxplore_dir)
-    if write_summary or save_visualizations:
+    if write_summary:
         results_dir.mkdir(parents=True, exist_ok=True)
+    if save_visualizations:
+        visualization_dir.mkdir(parents=True, exist_ok=True)
 
     if args.dry_run:
         payload = {
@@ -365,7 +370,7 @@ def run_deepxplore(
             }
             disagreements.append(record)
             if save_visualizations and saved < args.max_visualizations:
-                output_path = results_dir / f"{visualization_prefix}_{saved + 1:02d}.png"
+                output_path = visualization_dir / f"{visualization_prefix}_{saved + 1:02d}.png"
                 save_visualization(
                     output_path,
                     original,
@@ -424,6 +429,7 @@ def run_disagreement_threshold_sweep(
         thresholds.append(args.coverage_threshold)
         thresholds = sorted(set(thresholds))
 
+    threshold_dir = resolve_path(repo_dir, args.results_dir) / "threshold"
     results = {}
     for threshold in thresholds:
         if base_summary is not None and abs(threshold - args.coverage_threshold) < 1e-9:
@@ -435,6 +441,7 @@ def run_disagreement_threshold_sweep(
                 coverage_threshold=threshold,
                 write_summary=False,
                 save_visualizations=True,
+                visualization_dir=threshold_dir,
                 visualization_prefix=f"disagreement_t{threshold_filename(threshold)}",
                 progress_desc=f"threshold {threshold_key(threshold)}",
             )
@@ -472,8 +479,10 @@ def main() -> int:
     summary = run_deepxplore(args, repo_dir)
     if not summary.get("dry_run"):
         results_dir = resolve_path(repo_dir, args.results_dir)
+        threshold_dir = results_dir / "threshold"
         disagreement_sweep = run_disagreement_threshold_sweep(args, repo_dir, summary)
-        write_json(results_dir / "disagreement_by_threshold.json", disagreement_sweep)
+        threshold_dir.mkdir(parents=True, exist_ok=True)
+        write_json(threshold_dir / "disagreement_by_threshold.json", disagreement_sweep)
         summary["disagreement_by_threshold"] = disagreement_sweep["disagreement_by_threshold"]
         summary["settings"]["disagreement_sweep_thresholds"] = disagreement_sweep["settings"]["thresholds"]
         write_json(results_dir / "summary.json", summary)
