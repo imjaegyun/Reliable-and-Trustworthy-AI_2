@@ -68,9 +68,9 @@ The run writes:
 ## Current Results
 
 - Disagreement-inducing inputs: 30 / 30
-- Model A neuron coverage: 1.000
-- Model B neuron coverage: 1.000
-- Average neuron coverage: 1.000
+- Model A neuron coverage: 0.345
+- Model B neuron coverage: 0.348
+- Average neuron coverage: 0.347
 
 Many disagreements appeared in visually similar or ambiguous CIFAR-10 groups,
 especially animal classes and vehicle classes. Some original seed images already

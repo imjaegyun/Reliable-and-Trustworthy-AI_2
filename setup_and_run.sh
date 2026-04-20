@@ -19,6 +19,7 @@ TRAIN_SEEDS="${TRAIN_SEEDS:-1 2}"
 RUN_SEEDS="${RUN_SEEDS:-30}"
 ITERATIONS="${ITERATIONS:-20}"
 MAX_VISUALIZATIONS="${MAX_VISUALIZATIONS:-5}"
+COVERAGE_THRESHOLD="${COVERAGE_THRESHOLD:-0.75}"
 DOWNLOAD="${DOWNLOAD:-auto}"
 FORCE_TRAIN="${FORCE_TRAIN:-0}"
 SKIP_INSTALL="${SKIP_INSTALL:-0}"
@@ -113,6 +114,7 @@ if [[ "$SKIP_TEST" != "1" ]]; then
     --data-dir "$DATA_DIR" \
     --seeds "$RUN_SEEDS" \
     --iterations "$ITERATIONS" \
+    --coverage-threshold "$COVERAGE_THRESHOLD" \
     --max-visualizations "$MAX_VISUALIZATIONS" \
     --device "$DEVICE" \
     "${download_args[@]}"

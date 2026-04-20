@@ -2,9 +2,9 @@
   "num_seeds": 30,
   "num_disagreements": 30,
   "coverage": {
-    "model_a": 1.0,
-    "model_b": 1.0,
-    "average": 1.0
+    "model_a": 0.3453125,
+    "model_b": 0.34791666666666665,
+    "average": 0.34661458333333334
   },
   "disagreements": [
     {
@@ -26,11 +26,11 @@
       "true_label": "deer",
       "model_a": {
         "label": "deer",
-        "confidence": 0.43234190344810486
+        "confidence": 0.4375872015953064
       },
       "model_b": {
         "label": "bird",
-        "confidence": 0.32173964381217957
+        "confidence": 0.31710922718048096
       },
       "l_inf_delta": 0.010000020265579224,
       "visualization": "/data/home/ijg2603/UOS/\uc2e0\ub8b0\ud560\uc218\uc788\ub294\uc778\uacf5\uc9c0\ub2a5/assignment2/Reliable-and-Trustworthy-AI_2/results/disagreement_02.png"
@@ -40,11 +40,11 @@
       "true_label": "truck",
       "model_a": {
         "label": "airplane",
-        "confidence": 0.19464796781539917
+        "confidence": 0.1979263573884964
       },
       "model_b": {
         "label": "truck",
-        "confidence": 0.508063018321991
+        "confidence": 0.5331717729568481
       },
       "l_inf_delta": 0.010000020265579224,
       "visualization": "/data/home/ijg2603/UOS/\uc2e0\ub8b0\ud560\uc218\uc788\ub294\uc778\uacf5\uc9c0\ub2a5/assignment2/Reliable-and-Trustworthy-AI_2/results/disagreement_03.png"
@@ -54,11 +54,11 @@
       "true_label": "deer",
       "model_a": {
         "label": "bird",
-        "confidence": 0.35897332429885864
+        "confidence": 0.36113011837005615
       },
       "model_b": {
         "label": "deer",
-        "confidence": 0.19952057301998138
+        "confidence": 0.19935159385204315
       },
       "l_inf_delta": 0.010000020265579224,
       "visualization": "/data/home/ijg2603/UOS/\uc2e0\ub8b0\ud560\uc218\uc788\ub294\uc778\uacf5\uc9c0\ub2a5/assignment2/Reliable-and-Trustworthy-AI_2/results/disagreement_04.png"
@@ -82,11 +82,11 @@
       "true_label": "frog",
       "model_a": {
         "label": "truck",
-        "confidence": 0.4343525767326355
+        "confidence": 0.41474398970603943
       },
       "model_b": {
         "label": "airplane",
-        "confidence": 0.1967923641204834
+        "confidence": 0.18965528905391693
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -95,11 +95,11 @@
       "true_label": "cat",
       "model_a": {
         "label": "bird",
-        "confidence": 0.25701904296875
+        "confidence": 0.2584463655948639
       },
       "model_b": {
         "label": "frog",
-        "confidence": 0.35417357087135315
+        "confidence": 0.35558298230171204
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -108,11 +108,11 @@
       "true_label": "cat",
       "model_a": {
         "label": "frog",
-        "confidence": 0.36429259181022644
+        "confidence": 0.36004939675331116
       },
       "model_b": {
         "label": "cat",
-        "confidence": 0.22199082374572754
+        "confidence": 0.22782209515571594
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -121,11 +121,11 @@
       "true_label": "ship",
       "model_a": {
         "label": "truck",
-        "confidence": 0.3368467092514038
+        "confidence": 0.3181992173194885
       },
       "model_b": {
         "label": "ship",
-        "confidence": 0.5682045817375183
+        "confidence": 0.613974392414093
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -147,11 +147,11 @@
       "true_label": "deer",
       "model_a": {
         "label": "bird",
-        "confidence": 0.3824501037597656
+        "confidence": 0.38487112522125244
       },
       "model_b": {
         "label": "deer",
-        "confidence": 0.44011616706848145
+        "confidence": 0.4382655620574951
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -186,11 +186,11 @@
       "true_label": "automobile",
       "model_a": {
         "label": "cat",
-        "confidence": 0.19505803287029266
+        "confidence": 0.1843409240245819
       },
       "model_b": {
         "label": "ship",
-        "confidence": 0.20930784940719604
+        "confidence": 0.1858961135149002
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -199,11 +199,11 @@
       "true_label": "ship",
       "model_a": {
         "label": "bird",
-        "confidence": 0.14494605362415314
+        "confidence": 0.15307927131652832
       },
       "model_b": {
         "label": "cat",
-        "confidence": 0.2636997103691101
+        "confidence": 0.2746086120605469
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -212,24 +212,24 @@
       "true_label": "horse",
       "model_a": {
         "label": "horse",
-        "confidence": 0.5631572008132935
+        "confidence": 0.6391580700874329
       },
       "model_b": {
         "label": "truck",
-        "confidence": 0.25393202900886536
+        "confidence": 0.24091731011867523
       },
-      "l_inf_delta": 0.02000001072883606
+      "l_inf_delta": 0.03000001609325409
     },
     {
       "sample_index": 16,
       "true_label": "truck",
       "model_a": {
         "label": "truck",
-        "confidence": 0.18579484522342682
+        "confidence": 0.188886359333992
       },
       "model_b": {
         "label": "ship",
-        "confidence": 0.8421106934547424
+        "confidence": 0.8527615070343018
       },
       "l_inf_delta": 0.02000001072883606
     },
@@ -251,11 +251,11 @@
       "true_label": "airplane",
       "model_a": {
         "label": "ship",
-        "confidence": 0.371919184923172
+        "confidence": 0.3670036792755127
       },
       "model_b": {
         "label": "truck",
-        "confidence": 0.5659677982330322
+        "confidence": 0.5450218319892883
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -277,11 +277,11 @@
       "true_label": "deer",
       "model_a": {
         "label": "truck",
-        "confidence": 0.19464172422885895
+        "confidence": 0.20329895615577698
       },
       "model_b": {
         "label": "horse",
-        "confidence": 0.6209624409675598
+        "confidence": 0.6167230010032654
       },
       "l_inf_delta": 0.03000001609325409
     },
@@ -290,11 +290,11 @@
       "true_label": "ship",
       "model_a": {
         "label": "frog",
-        "confidence": 0.3372257649898529
+        "confidence": 0.3464023470878601
       },
       "model_b": {
         "label": "cat",
-        "confidence": 0.16695816814899445
+        "confidence": 0.16632360219955444
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -316,11 +316,11 @@
       "true_label": "automobile",
       "model_a": {
         "label": "ship",
-        "confidence": 0.6679821014404297
+        "confidence": 0.6542969942092896
       },
       "model_b": {
         "label": "automobile",
-        "confidence": 0.3071196675300598
+        "confidence": 0.32739347219467163
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -355,13 +355,13 @@
       "true_label": "ship",
       "model_a": {
         "label": "airplane",
-        "confidence": 0.4259393811225891
+        "confidence": 0.45558059215545654
       },
       "model_b": {
         "label": "ship",
-        "confidence": 0.8790574669837952
+        "confidence": 0.8225376009941101
       },
-      "l_inf_delta": 0.03000001609325409
+      "l_inf_delta": 0.02000001072883606
     },
     {
       "sample_index": 27,
@@ -381,24 +381,24 @@
       "true_label": "cat",
       "model_a": {
         "label": "frog",
-        "confidence": 0.17361518740653992
+        "confidence": 0.18777036666870117
       },
       "model_b": {
         "label": "cat",
-        "confidence": 0.40508848428726196
+        "confidence": 0.3705756962299347
       },
-      "l_inf_delta": 0.02000001072883606
+      "l_inf_delta": 0.010000020265579224
     },
     {
       "sample_index": 29,
       "true_label": "horse",
       "model_a": {
         "label": "truck",
-        "confidence": 0.5284624099731445
+        "confidence": 0.5224878191947937
       },
       "model_b": {
-        "label": "ship",
-        "confidence": 0.16191720962524414
+        "label": "dog",
+        "confidence": 0.14891520142555237
       },
       "l_inf_delta": 0.010000020265579224
     }
@@ -409,6 +409,6 @@
     "epsilon": 0.12,
     "weight_diff": 1.0,
     "weight_nc": 0.2,
-    "coverage_threshold": 0.2
+    "coverage_threshold": 0.75
   }
 }

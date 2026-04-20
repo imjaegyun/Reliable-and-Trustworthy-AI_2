@@ -37,7 +37,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--epsilon", type=float, default=0.12)
     parser.add_argument("--weight-diff", type=float, default=1.0)
     parser.add_argument("--weight-nc", type=float, default=0.2)
-    parser.add_argument("--coverage-threshold", type=float, default=0.2)
+    parser.add_argument("--coverage-threshold", type=float, default=0.75)
     parser.add_argument("--max-visualizations", type=int, default=5)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--num-workers", type=int, default=0)
