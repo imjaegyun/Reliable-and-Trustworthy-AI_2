@@ -3,9 +3,11 @@
 FGSM, PGD와 DeepXplore는 모두 모델의 약점을 찾기 위해 기울기를 활용한다는
 공통점이 있다. 이번 실험에서도 CIFAR-10 입력 중 일부는 원본 이미지 상태에서
 두 ResNet50 모델의 예측이 달랐고, 일부는 작은 perturbation을 준 뒤에 예측이
-갈라졌다. 최종 실행에서는 neuron coverage threshold를 0.75로 두었고, 30개의
-seed 입력에서 30개의 예측 불일치 입력을 찾았다. neuron coverage는 model A
-0.345, model B 0.348, 평균 0.347이었다. 이 점에서 adversarial attack은
+갈라졌다. 과제에서는 threshold 값을 따로 지정하지 않았기 때문에 0.2, 0.5,
+0.75, 0.9를 함께 비교했다. 평균 coverage는 각각 1.000, 0.966, 0.345,
+0.089였다. 0.2와 0.5에서는 coverage가 거의 포화되었고, 0.9는 지나치게
+엄격했다. 최종 실행에서는 0.75를 대표 threshold로 두었고, 30개의 seed
+입력에서 30개의 예측 불일치 입력을 찾았다. 이 점에서 adversarial attack은
 differential testing의 좋은 seed를
 만드는 방법이 될 수 있다. 깨끗한 테스트 이미지에서만 시작하는 대신, FGSM이나
 PGD로 이미 decision boundary 근처에 있는 입력을 만든 뒤 DeepXplore의 탐색

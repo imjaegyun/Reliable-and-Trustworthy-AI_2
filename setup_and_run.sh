@@ -20,6 +20,7 @@ RUN_SEEDS="${RUN_SEEDS:-30}"
 ITERATIONS="${ITERATIONS:-20}"
 MAX_VISUALIZATIONS="${MAX_VISUALIZATIONS:-5}"
 COVERAGE_THRESHOLD="${COVERAGE_THRESHOLD:-0.75}"
+COVERAGE_SWEEP_THRESHOLDS="${COVERAGE_SWEEP_THRESHOLDS:-0.2,0.5,0.75,0.9}"
 DOWNLOAD="${DOWNLOAD:-auto}"
 FORCE_TRAIN="${FORCE_TRAIN:-0}"
 SKIP_INSTALL="${SKIP_INSTALL:-0}"
@@ -115,6 +116,7 @@ if [[ "$SKIP_TEST" != "1" ]]; then
     --seeds "$RUN_SEEDS" \
     --iterations "$ITERATIONS" \
     --coverage-threshold "$COVERAGE_THRESHOLD" \
+    --coverage-sweep-thresholds "$COVERAGE_SWEEP_THRESHOLDS" \
     --max-visualizations "$MAX_VISUALIZATIONS" \
     --device "$DEVICE" \
     "${download_args[@]}"

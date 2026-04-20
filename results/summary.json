@@ -2,9 +2,31 @@
   "num_seeds": 30,
   "num_disagreements": 30,
   "coverage": {
-    "model_a": 0.3453125,
-    "model_b": 0.34791666666666665,
-    "average": 0.34661458333333334
+    "model_a": 0.34296875,
+    "model_b": 0.346875,
+    "average": 0.344921875
+  },
+  "coverage_by_threshold": {
+    "0.2": {
+      "model_a": 1.0,
+      "model_b": 1.0,
+      "average": 1.0
+    },
+    "0.5": {
+      "model_a": 0.965625,
+      "model_b": 0.9658854166666667,
+      "average": 0.9657552083333334
+    },
+    "0.75": {
+      "model_a": 0.34296875,
+      "model_b": 0.346875,
+      "average": 0.344921875
+    },
+    "0.9": {
+      "model_a": 0.08515625,
+      "model_b": 0.09192708333333334,
+      "average": 0.08854166666666667
+    }
   },
   "disagreements": [
     {
@@ -212,11 +234,11 @@
       "true_label": "horse",
       "model_a": {
         "label": "horse",
-        "confidence": 0.6391580700874329
+        "confidence": 0.6387931704521179
       },
       "model_b": {
         "label": "truck",
-        "confidence": 0.24091731011867523
+        "confidence": 0.24011729657649994
       },
       "l_inf_delta": 0.03000001609325409
     },
@@ -225,11 +247,11 @@
       "true_label": "truck",
       "model_a": {
         "label": "truck",
-        "confidence": 0.188886359333992
+        "confidence": 0.1890600174665451
       },
       "model_b": {
         "label": "ship",
-        "confidence": 0.8527615070343018
+        "confidence": 0.8530343174934387
       },
       "l_inf_delta": 0.02000001072883606
     },
@@ -251,11 +273,11 @@
       "true_label": "airplane",
       "model_a": {
         "label": "ship",
-        "confidence": 0.3670036792755127
+        "confidence": 0.3507896959781647
       },
       "model_b": {
         "label": "truck",
-        "confidence": 0.5450218319892883
+        "confidence": 0.5564349293708801
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -277,24 +299,24 @@
       "true_label": "deer",
       "model_a": {
         "label": "truck",
-        "confidence": 0.20329895615577698
+        "confidence": 0.23815381526947021
       },
       "model_b": {
         "label": "horse",
-        "confidence": 0.6167230010032654
+        "confidence": 0.5830299854278564
       },
-      "l_inf_delta": 0.03000001609325409
+      "l_inf_delta": 0.02000001072883606
     },
     {
       "sample_index": 21,
       "true_label": "ship",
       "model_a": {
         "label": "frog",
-        "confidence": 0.3464023470878601
+        "confidence": 0.3504374623298645
       },
       "model_b": {
         "label": "cat",
-        "confidence": 0.16632360219955444
+        "confidence": 0.1651546061038971
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -316,11 +338,11 @@
       "true_label": "automobile",
       "model_a": {
         "label": "ship",
-        "confidence": 0.6542969942092896
+        "confidence": 0.6602032780647278
       },
       "model_b": {
         "label": "automobile",
-        "confidence": 0.32739347219467163
+        "confidence": 0.31442806124687195
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -355,11 +377,11 @@
       "true_label": "ship",
       "model_a": {
         "label": "airplane",
-        "confidence": 0.45558059215545654
+        "confidence": 0.4503909945487976
       },
       "model_b": {
         "label": "ship",
-        "confidence": 0.8225376009941101
+        "confidence": 0.8140497207641602
       },
       "l_inf_delta": 0.02000001072883606
     },
@@ -381,11 +403,11 @@
       "true_label": "cat",
       "model_a": {
         "label": "frog",
-        "confidence": 0.18777036666870117
+        "confidence": 0.18854837119579315
       },
       "model_b": {
         "label": "cat",
-        "confidence": 0.3705756962299347
+        "confidence": 0.3981158435344696
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -394,11 +416,11 @@
       "true_label": "horse",
       "model_a": {
         "label": "truck",
-        "confidence": 0.5224878191947937
+        "confidence": 0.5263200402259827
       },
       "model_b": {
-        "label": "dog",
-        "confidence": 0.14891520142555237
+        "label": "ship",
+        "confidence": 0.1584838330745697
       },
       "l_inf_delta": 0.010000020265579224
     }
@@ -409,6 +431,12 @@
     "epsilon": 0.12,
     "weight_diff": 1.0,
     "weight_nc": 0.2,
-    "coverage_threshold": 0.75
+    "coverage_threshold": 0.75,
+    "coverage_sweep_thresholds": [
+      0.2,
+      0.5,
+      0.75,
+      0.9
+    ]
   }
 }

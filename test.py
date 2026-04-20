@@ -38,6 +38,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--weight-diff", type=float, default=1.0)
     parser.add_argument("--weight-nc", type=float, default=0.2)
     parser.add_argument("--coverage-threshold", type=float, default=0.75)
+    parser.add_argument("--coverage-sweep-thresholds", default="0.2,0.5,0.75,0.9")
     parser.add_argument("--max-visualizations", type=int, default=5)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--num-workers", type=int, default=0)
@@ -66,6 +67,19 @@ def set_seed(seed: int) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+
+
+def parse_thresholds(value: str) -> list[float]:
+    thresholds = []
+    for item in value.split(","):
+        item = item.strip()
+        if item:
+            thresholds.append(float(item))
+    return sorted(set(thresholds))
+
+
+def threshold_key(threshold: float) -> str:
+    return f"{threshold:g}"
 
 
 def resolve_device(device_name: str) -> torch.device:
@@ -158,6 +172,16 @@ def coverage_fraction(state: CoverageState) -> float:
     return covered / max(state.total, 1)
 
 
+def update_sweep(
+    sweep_states: list[tuple[float, CoverageState, CoverageState]],
+    activations_a: dict[str, torch.Tensor],
+    activations_b: dict[str, torch.Tensor],
+) -> None:
+    for threshold, state_a, state_b in sweep_states:
+        update_coverage(state_a, activations_a, threshold)
+        update_coverage(state_b, activations_b, threshold)
+
+
 def pick_uncovered(state: CoverageState) -> tuple[str, int]:
     candidates = []
     for name, mask in state.covered.items():
@@ -245,6 +269,14 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
     model_b = load_checkpoint(str(model_b_path), device)
     coverage_a = init_coverage(model_a, device)
     coverage_b = init_coverage(model_b, device)
+    sweep_thresholds = parse_thresholds(args.coverage_sweep_thresholds)
+    if not any(abs(threshold - args.coverage_threshold) < 1e-9 for threshold in sweep_thresholds):
+        sweep_thresholds.append(args.coverage_threshold)
+        sweep_thresholds = sorted(set(sweep_thresholds))
+    coverage_sweep = [
+        (threshold, init_coverage(model_a, device), init_coverage(model_b, device))
+        for threshold in sweep_thresholds
+    ]
     loader = make_loader(args, repo_dir)
     disagreements = []
     saved = 0
@@ -260,6 +292,7 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
         activations_b = collect_activations(model_b, images)
         update_coverage(coverage_a, activations_a, args.coverage_threshold)
         update_coverage(coverage_b, activations_b, args.coverage_threshold)
+        update_sweep(coverage_sweep, activations_a, activations_b)
 
         if label_a != label_b:
             generated = images.detach()
@@ -295,6 +328,7 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
                 activations_b = collect_activations(model_b, generated)
                 update_coverage(coverage_a, activations_a, args.coverage_threshold)
                 update_coverage(coverage_b, activations_b, args.coverage_threshold)
+                update_sweep(coverage_sweep, activations_a, activations_b)
                 if label_a != label_b:
                     break
 
@@ -328,6 +362,16 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
                 record["visualization"] = str(output_path)
                 saved += 1
 
+    coverage_by_threshold = {}
+    for threshold, state_a, state_b in coverage_sweep:
+        coverage_a_value = coverage_fraction(state_a)
+        coverage_b_value = coverage_fraction(state_b)
+        coverage_by_threshold[threshold_key(threshold)] = {
+            "model_a": coverage_a_value,
+            "model_b": coverage_b_value,
+            "average": (coverage_a_value + coverage_b_value) / 2,
+        }
+
     summary = {
         "num_seeds": args.seeds,
         "num_disagreements": len(disagreements),
@@ -336,6 +380,7 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
             "model_b": coverage_fraction(coverage_b),
             "average": (coverage_fraction(coverage_a) + coverage_fraction(coverage_b)) / 2,
         },
+        "coverage_by_threshold": coverage_by_threshold,
         "disagreements": disagreements,
         "settings": {
             "iterations": args.iterations,
@@ -344,6 +389,7 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
             "weight_diff": args.weight_diff,
             "weight_nc": args.weight_nc,
             "coverage_threshold": args.coverage_threshold,
+            "coverage_sweep_thresholds": sweep_thresholds,
         },
     }
     write_json(results_dir / "summary.json", summary)
