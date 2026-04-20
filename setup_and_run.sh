@@ -4,8 +4,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
 
-ENV_DIR="${ENV_DIR:-$ROOT_DIR/.venv}"
-PYTHON_BIN="${PYTHON_BIN:-python3}"
+ENV_NAME="${ENV_NAME:-rtai-a2}"
+PYTHON_VERSION="${PYTHON_VERSION:-3.10}"
+EXPECTED_TORCH_CUDA="${EXPECTED_TORCH_CUDA:-11.8}"
 DEVICE="${DEVICE:-auto}"
 DEEPXPLORE_DIR="${DEEPXPLORE_DIR:-../deepxplore}"
 DATA_DIR="${DATA_DIR:-../../assignment1/data}"
@@ -34,22 +35,37 @@ absolute_path() {
 DATA_PATH="$(absolute_path "$DATA_DIR")"
 DEEPXPLORE_PATH="$(absolute_path "$DEEPXPLORE_DIR")"
 
-if [[ ! -d "$ENV_DIR" ]]; then
-  "$PYTHON_BIN" -m venv "$ENV_DIR"
+if ! command -v conda >/dev/null 2>&1; then
+  echo "conda command was not found" >&2
+  exit 1
 fi
 
-source "$ENV_DIR/bin/activate"
+env_exists=0
+if conda env list | awk 'NF && $1 !~ /^#/ {print $1}' | grep -Fxq "$ENV_NAME"; then
+  env_exists=1
+fi
+
+if [[ "$env_exists" == "0" ]]; then
+  conda create -y -n "$ENV_NAME" "python=$PYTHON_VERSION"
+fi
+
+CONDA_RUN=(conda run --no-capture-output -n "$ENV_NAME")
 
 if [[ "$SKIP_INSTALL" != "1" ]]; then
-  python -m pip install --upgrade pip setuptools wheel
-  python -m pip install -r requirements.txt
+  "${CONDA_RUN[@]}" python -m pip install --upgrade pip setuptools wheel
+  "${CONDA_RUN[@]}" python -m pip install -r requirements.txt
 fi
 
-python - <<'PY'
+"${CONDA_RUN[@]}" python - "$EXPECTED_TORCH_CUDA" <<'PY'
+import sys
 import torch
 
+expected_cuda = sys.argv[1]
 print(f"torch={torch.__version__}")
+print(f"torch_cuda={torch.version.cuda}")
 print(f"cuda_available={torch.cuda.is_available()}")
+if torch.version.cuda != expected_cuda:
+    raise SystemExit(f"expected torch CUDA {expected_cuda}, got {torch.version.cuda}")
 if torch.cuda.is_available():
     print(f"cuda_device={torch.cuda.get_device_name(0)}")
 PY
@@ -72,7 +88,7 @@ done
 
 if [[ "$SKIP_TRAIN" != "1" ]]; then
   if [[ "$FORCE_TRAIN" == "1" || "$FORCE_TRAIN" == "true" || "$need_train" == "1" ]]; then
-    python train_models.py \
+    "${CONDA_RUN[@]}" python train_models.py \
       --data-dir "$DATA_DIR" \
       --epochs "$EPOCHS" \
       --train-limit "$TRAIN_LIMIT" \
@@ -92,7 +108,7 @@ if [[ "$SKIP_TEST" != "1" ]]; then
     echo "DeepXplore directory not found: $DEEPXPLORE_PATH" >&2
     exit 1
   fi
-  python test.py \
+  "${CONDA_RUN[@]}" python test.py \
     --deepxplore-dir "$DEEPXPLORE_DIR" \
     --data-dir "$DATA_DIR" \
     --seeds "$RUN_SEEDS" \

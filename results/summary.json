@@ -26,11 +26,11 @@
       "true_label": "deer",
       "model_a": {
         "label": "deer",
-        "confidence": 0.43208548426628113
+        "confidence": 0.43234190344810486
       },
       "model_b": {
         "label": "bird",
-        "confidence": 0.32272788882255554
+        "confidence": 0.32173964381217957
       },
       "l_inf_delta": 0.010000020265579224,
       "visualization": "/data/home/ijg2603/UOS/\uc2e0\ub8b0\ud560\uc218\uc788\ub294\uc778\uacf5\uc9c0\ub2a5/assignment2/Reliable-and-Trustworthy-AI_2/results/disagreement_02.png"
@@ -225,11 +225,11 @@
       "true_label": "truck",
       "model_a": {
         "label": "truck",
-        "confidence": 0.1936229169368744
+        "confidence": 0.18579484522342682
       },
       "model_b": {
         "label": "ship",
-        "confidence": 0.8411006331443787
+        "confidence": 0.8421106934547424
       },
       "l_inf_delta": 0.02000001072883606
     },
@@ -277,11 +277,11 @@
       "true_label": "deer",
       "model_a": {
         "label": "truck",
-        "confidence": 0.1951136440038681
+        "confidence": 0.19464172422885895
       },
       "model_b": {
         "label": "horse",
-        "confidence": 0.6013297438621521
+        "confidence": 0.6209624409675598
       },
       "l_inf_delta": 0.03000001609325409
     },
@@ -290,11 +290,11 @@
       "true_label": "ship",
       "model_a": {
         "label": "frog",
-        "confidence": 0.335903137922287
+        "confidence": 0.3372257649898529
       },
       "model_b": {
         "label": "cat",
-        "confidence": 0.16662418842315674
+        "confidence": 0.16695816814899445
       },
       "l_inf_delta": 0.010000020265579224
     },
@@ -394,11 +394,11 @@
       "true_label": "horse",
       "model_a": {
         "label": "truck",
-        "confidence": 0.5297009348869324
+        "confidence": 0.5284624099731445
       },
       "model_b": {
         "label": "ship",
-        "confidence": 0.16227278113365173
+        "confidence": 0.16191720962524414
       },
       "l_inf_delta": 0.010000020265579224
     }
