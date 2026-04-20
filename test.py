@@ -107,6 +107,7 @@ def make_loader(args: argparse.Namespace, repo_dir: Path) -> DataLoader:
 
 
 def coverage_layers(model: torch.nn.Module) -> dict[str, torch.nn.Module]:
+    # ResNet block outputs are used as neuron coverage targets.
     return {
         "layer1": model.backbone.layer1,
         "layer2": model.backbone.layer2,
@@ -146,6 +147,7 @@ def update_coverage(
     threshold: float,
 ) -> None:
     for name, output in activations.items():
+        # A channel is covered when its normalized mean activation crosses the threshold.
         values = output.detach().flatten(2).mean(dim=(0, 2))
         minimum = values.min()
         maximum = values.max()
@@ -278,6 +280,7 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
                 layer_b, channel_b = pick_uncovered(coverage_b)
                 neuron_loss = selected_activation(activations_a, layer_a, channel_a)
                 neuron_loss = neuron_loss + selected_activation(activations_b, layer_b, channel_b)
+                # Combine differential behavior and neuron coverage, following DeepXplore.
                 if target_model == 0:
                     diff_loss = logits_b[:, target_label].mean() - logits_a[:, target_label].mean()
                 else:
@@ -285,6 +288,7 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
                 loss = args.weight_diff * diff_loss + args.weight_nc * neuron_loss
                 loss.backward()
                 with torch.no_grad():
+                    # Project the generated image back into an epsilon ball around the seed.
                     step = args.step * generated.grad.sign()
                     generated = generated + step
                     generated = torch.max(torch.min(generated, original + args.epsilon), original - args.epsilon)

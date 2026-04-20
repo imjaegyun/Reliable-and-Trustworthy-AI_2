@@ -73,6 +73,7 @@ def make_loaders(
     device: torch.device,
 ) -> tuple[DataLoader, DataLoader]:
     data_dir = resolve_path(repo_dir, args.data_dir)
+    # Keep preprocessing in [0, 1]; normalization is inside the model.
     train_transform = transforms.Compose(
         [
             transforms.RandomCrop(32, padding=4),
@@ -146,6 +147,7 @@ def train_one(seed: int, args: argparse.Namespace, repo_dir: Path) -> Path:
     models_dir.mkdir(parents=True, exist_ok=True)
     output_path = models_dir / f"resnet50_cifar10_seed{seed}.pt"
 
+    # Save the best checkpoint for each seed so the two models are independent.
     for epoch in range(1, args.epochs + 1):
         model.train()
         progress = tqdm(train_loader, desc=f"seed {seed} epoch {epoch}/{args.epochs}")
