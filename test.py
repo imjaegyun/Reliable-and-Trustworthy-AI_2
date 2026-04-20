@@ -1,25 +1,50 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
 import json
-import sys
-from datetime import datetime, timezone
+import random
+from dataclasses import dataclass
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import torch.nn.functional as F
+from torch.utils.data import DataLoader, Subset
+from torchvision import datasets, transforms
+from tqdm import tqdm
 
-CIFAR10_CLASSES = [
-    "airplane",
-    "automobile",
-    "bird",
-    "cat",
-    "deer",
-    "dog",
-    "frog",
-    "horse",
-    "ship",
-    "truck",
-]
+from models import CIFAR10_CLASSES, load_checkpoint
+
+
+@dataclass
+class CoverageState:
+    covered: dict[str, torch.Tensor]
+    total: int
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--deepxplore-dir", default="../deepxplore")
+    parser.add_argument("--data-dir", default="../../assignment1/data")
+    parser.add_argument("--model-a", default="models/resnet50_cifar10_seed1.pt")
+    parser.add_argument("--model-b", default="models/resnet50_cifar10_seed2.pt")
+    parser.add_argument("--results-dir", default="results")
+    parser.add_argument("--seeds", type=int, default=20)
+    parser.add_argument("--iterations", type=int, default=20)
+    parser.add_argument("--step", type=float, default=0.01)
+    parser.add_argument("--epsilon", type=float, default=0.12)
+    parser.add_argument("--weight-diff", type=float, default=1.0)
+    parser.add_argument("--weight-nc", type=float, default=0.2)
+    parser.add_argument("--coverage-threshold", type=float, default=0.2)
+    parser.add_argument("--max-visualizations", type=int, default=5)
+    parser.add_argument("--batch-size", type=int, default=1)
+    parser.add_argument("--num-workers", type=int, default=0)
+    parser.add_argument("--seed", type=int, default=7)
+    parser.add_argument("--download", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--device", default="cpu")
+    return parser.parse_args()
 
 
 def resolve_path(base_dir: Path, path_value: str) -> Path:
@@ -29,125 +54,295 @@ def resolve_path(base_dir: Path, path_value: str) -> Path:
     return path.resolve()
 
 
-def require_path(path: Path, label: str, *, is_dir: bool = False) -> None:
+def require_path(path: Path, label: str, is_dir: bool = False) -> None:
     if is_dir and not path.is_dir():
         raise FileNotFoundError(f"{label} directory not found: {path}")
     if not is_dir and not path.is_file():
         raise FileNotFoundError(f"{label} file not found: {path}")
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Run DeepXplore differential testing for CIFAR-10 ResNet50 models.",
-    )
-    parser.add_argument(
-        "--deepxplore-dir",
-        default="../deepxplore",
-        help="Path to the local DeepXplore clone.",
-    )
-    parser.add_argument(
-        "--model-a",
-        default=None,
-        help="Path to the first CIFAR-10 ResNet50 checkpoint.",
-    )
-    parser.add_argument(
-        "--model-b",
-        default=None,
-        help="Path to the second CIFAR-10 ResNet50 checkpoint.",
-    )
-    parser.add_argument(
-        "--results-dir",
-        default="results",
-        help="Directory for generated images and summaries.",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Validate paths and write run_config.json without running DeepXplore.",
-    )
-    return parser.parse_args()
+def set_seed(seed: int) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
 
 def validate_deepxplore_dir(deepxplore_dir: Path) -> None:
     require_path(deepxplore_dir, "DeepXplore", is_dir=True)
-
-    expected_files = [
-        deepxplore_dir / "README.md",
-        deepxplore_dir / "MNIST" / "gen_diff.py",
-        deepxplore_dir / "ImageNet" / "gen_diff.py",
-    ]
-    missing = [str(path) for path in expected_files if not path.exists()]
-    if missing:
-        formatted = "\n  - ".join(missing)
-        raise FileNotFoundError(f"DeepXplore clone looks incomplete:\n  - {formatted}")
+    for relative_path in ["README.md", "ImageNet/gen_diff.py", "ImageNet/utils.py"]:
+        require_path(deepxplore_dir / relative_path, f"DeepXplore {relative_path}")
 
 
-def write_run_config(
-    results_dir: Path,
-    deepxplore_dir: Path,
-    model_paths: list[Path],
-    dry_run: bool,
-) -> Path:
-    results_dir.mkdir(parents=True, exist_ok=True)
-    config = {
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "deepxplore_dir": str(deepxplore_dir),
-        "models": [str(path) for path in model_paths],
-        "classes": CIFAR10_CLASSES,
-        "dry_run": dry_run,
-    }
-    output_path = results_dir / "run_config.json"
-    output_path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
-    return output_path
-
-
-def run_deepxplore(
-    deepxplore_dir: Path,
-    model_paths: list[Path],
-    results_dir: Path,
-) -> int:
-    raise NotImplementedError(
-        "DeepXplore/CIFAR-10 execution is not implemented yet. "
-        "Use --dry-run for the initial check, then implement run_deepxplore()."
+def make_loader(args: argparse.Namespace, repo_dir: Path) -> DataLoader:
+    data_dir = resolve_path(repo_dir, args.data_dir)
+    dataset = datasets.CIFAR10(
+        root=str(data_dir),
+        train=False,
+        download=args.download,
+        transform=transforms.ToTensor(),
     )
+    limit = min(args.seeds, len(dataset))
+    generator = torch.Generator().manual_seed(args.seed)
+    indices = torch.randperm(len(dataset), generator=generator)[:limit].tolist()
+    subset = Subset(dataset, indices)
+    return DataLoader(
+        subset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+    )
+
+
+def coverage_layers(model: torch.nn.Module) -> dict[str, torch.nn.Module]:
+    return {
+        "layer1": model.backbone.layer1,
+        "layer2": model.backbone.layer2,
+        "layer3": model.backbone.layer3,
+        "layer4": model.backbone.layer4,
+    }
+
+
+def init_coverage(model: torch.nn.Module, device: torch.device) -> CoverageState:
+    channels = {
+        "layer1": model.backbone.layer1[-1].conv3.out_channels,
+        "layer2": model.backbone.layer2[-1].conv3.out_channels,
+        "layer3": model.backbone.layer3[-1].conv3.out_channels,
+        "layer4": model.backbone.layer4[-1].conv3.out_channels,
+    }
+    covered = {
+        name: torch.zeros(count, dtype=torch.bool, device=device)
+        for name, count in channels.items()
+    }
+    return CoverageState(covered=covered, total=sum(channels.values()))
+
+
+def collect_activations(model: torch.nn.Module, images: torch.Tensor) -> dict[str, torch.Tensor]:
+    activations: dict[str, torch.Tensor] = {}
+    handles = []
+    for name, layer in coverage_layers(model).items():
+        handles.append(layer.register_forward_hook(lambda _, __, output, key=name: activations.__setitem__(key, output)))
+    model(images)
+    for handle in handles:
+        handle.remove()
+    return activations
+
+
+def update_coverage(
+    state: CoverageState,
+    activations: dict[str, torch.Tensor],
+    threshold: float,
+) -> None:
+    for name, output in activations.items():
+        values = output.detach().flatten(2).mean(dim=(0, 2))
+        minimum = values.min()
+        maximum = values.max()
+        scaled = (values - minimum) / (maximum - minimum + 1e-8)
+        state.covered[name] |= scaled > threshold
+
+
+def coverage_fraction(state: CoverageState) -> float:
+    covered = sum(mask.sum().item() for mask in state.covered.values())
+    return covered / max(state.total, 1)
+
+
+def pick_uncovered(state: CoverageState) -> tuple[str, int]:
+    candidates = []
+    for name, mask in state.covered.items():
+        indices = torch.where(~mask)[0].tolist()
+        candidates.extend((name, index) for index in indices)
+    if not candidates:
+        for name, mask in state.covered.items():
+            candidates.extend((name, index) for index in range(mask.numel()))
+    return random.choice(candidates)
+
+
+def selected_activation(
+    activations: dict[str, torch.Tensor],
+    layer_name: str,
+    channel_index: int,
+) -> torch.Tensor:
+    output = activations[layer_name]
+    if output.ndim == 4:
+        return output[:, channel_index].mean()
+    return output[:, channel_index].mean()
+
+
+def predict(model: torch.nn.Module, images: torch.Tensor) -> tuple[int, float]:
+    with torch.no_grad():
+        probabilities = F.softmax(model(images), dim=1)
+        confidence, label = probabilities.max(dim=1)
+    return label.item(), confidence.item()
+
+
+def save_visualization(
+    path: Path,
+    original: torch.Tensor,
+    generated: torch.Tensor,
+    true_label: int,
+    predictions: dict[str, tuple[int, float]],
+) -> None:
+    original_np = original.squeeze(0).detach().cpu().permute(1, 2, 0).numpy()
+    generated_np = generated.squeeze(0).detach().cpu().permute(1, 2, 0).numpy()
+    figure, axes = plt.subplots(1, 2, figsize=(7, 3.5))
+    axes[0].imshow(np.clip(original_np, 0, 1))
+    axes[0].set_title(f"seed: {CIFAR10_CLASSES[true_label]}")
+    axes[0].axis("off")
+    axes[1].imshow(np.clip(generated_np, 0, 1))
+    title_lines = []
+    for model_name, (label, confidence) in predictions.items():
+        title_lines.append(f"{model_name}: {CIFAR10_CLASSES[label]} ({confidence:.2f})")
+    axes[1].set_title("\n".join(title_lines))
+    axes[1].axis("off")
+    figure.tight_layout()
+    figure.savefig(path, dpi=160)
+    plt.close(figure)
+
+
+def write_json(path: Path, payload: dict) -> None:
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
+    if args.batch_size != 1:
+        raise ValueError("batch-size must be 1 for gradient-based input generation")
+
+    set_seed(args.seed)
+    device = torch.device(args.device)
+    deepxplore_dir = resolve_path(repo_dir, args.deepxplore_dir)
+    model_a_path = resolve_path(repo_dir, args.model_a)
+    model_b_path = resolve_path(repo_dir, args.model_b)
+    results_dir = resolve_path(repo_dir, args.results_dir)
+    validate_deepxplore_dir(deepxplore_dir)
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.dry_run:
+        payload = {
+            "deepxplore_dir": str(deepxplore_dir),
+            "model_a": str(model_a_path),
+            "model_b": str(model_b_path),
+            "results_dir": str(results_dir),
+            "dry_run": True,
+        }
+        write_json(results_dir / "run_config.json", payload)
+        return payload
+
+    require_path(model_a_path, "model A")
+    require_path(model_b_path, "model B")
+    model_a = load_checkpoint(str(model_a_path), device)
+    model_b = load_checkpoint(str(model_b_path), device)
+    coverage_a = init_coverage(model_a, device)
+    coverage_b = init_coverage(model_b, device)
+    loader = make_loader(args, repo_dir)
+    disagreements = []
+    saved = 0
+
+    for sample_index, (images, labels) in enumerate(tqdm(loader, desc="deepxplore")):
+        images = images.to(device)
+        labels = labels.to(device)
+        original = images.detach().clone()
+        true_label = labels.item()
+        label_a, conf_a = predict(model_a, images)
+        label_b, conf_b = predict(model_b, images)
+        activations_a = collect_activations(model_a, images)
+        activations_b = collect_activations(model_b, images)
+        update_coverage(coverage_a, activations_a, args.coverage_threshold)
+        update_coverage(coverage_b, activations_b, args.coverage_threshold)
+
+        if label_a != label_b:
+            generated = images.detach()
+        else:
+            generated = images.detach().clone()
+            target_label = label_a
+            target_model = sample_index % 2
+            for _ in range(args.iterations):
+                generated.requires_grad_(True)
+                generated.grad = None
+                activations_a = collect_activations(model_a, generated)
+                activations_b = collect_activations(model_b, generated)
+                logits_a = model_a(generated)
+                logits_b = model_b(generated)
+                layer_a, channel_a = pick_uncovered(coverage_a)
+                layer_b, channel_b = pick_uncovered(coverage_b)
+                neuron_loss = selected_activation(activations_a, layer_a, channel_a)
+                neuron_loss = neuron_loss + selected_activation(activations_b, layer_b, channel_b)
+                if target_model == 0:
+                    diff_loss = logits_b[:, target_label].mean() - logits_a[:, target_label].mean()
+                else:
+                    diff_loss = logits_a[:, target_label].mean() - logits_b[:, target_label].mean()
+                loss = args.weight_diff * diff_loss + args.weight_nc * neuron_loss
+                loss.backward()
+                with torch.no_grad():
+                    step = args.step * generated.grad.sign()
+                    generated = generated + step
+                    generated = torch.max(torch.min(generated, original + args.epsilon), original - args.epsilon)
+                    generated = generated.clamp(0.0, 1.0).detach()
+                label_a, conf_a = predict(model_a, generated)
+                label_b, conf_b = predict(model_b, generated)
+                activations_a = collect_activations(model_a, generated)
+                activations_b = collect_activations(model_b, generated)
+                update_coverage(coverage_a, activations_a, args.coverage_threshold)
+                update_coverage(coverage_b, activations_b, args.coverage_threshold)
+                if label_a != label_b:
+                    break
+
+        if label_a != label_b:
+            record = {
+                "sample_index": sample_index,
+                "true_label": CIFAR10_CLASSES[true_label],
+                "model_a": {
+                    "label": CIFAR10_CLASSES[label_a],
+                    "confidence": conf_a,
+                },
+                "model_b": {
+                    "label": CIFAR10_CLASSES[label_b],
+                    "confidence": conf_b,
+                },
+                "l_inf_delta": (generated - original).abs().max().item(),
+            }
+            disagreements.append(record)
+            if saved < args.max_visualizations:
+                output_path = results_dir / f"disagreement_{saved + 1:02d}.png"
+                save_visualization(
+                    output_path,
+                    original,
+                    generated,
+                    true_label,
+                    {
+                        "model A": (label_a, conf_a),
+                        "model B": (label_b, conf_b),
+                    },
+                )
+                record["visualization"] = str(output_path)
+                saved += 1
+
+    summary = {
+        "num_seeds": args.seeds,
+        "num_disagreements": len(disagreements),
+        "coverage": {
+            "model_a": coverage_fraction(coverage_a),
+            "model_b": coverage_fraction(coverage_b),
+            "average": (coverage_fraction(coverage_a) + coverage_fraction(coverage_b)) / 2,
+        },
+        "disagreements": disagreements,
+        "settings": {
+            "iterations": args.iterations,
+            "step": args.step,
+            "epsilon": args.epsilon,
+            "weight_diff": args.weight_diff,
+            "weight_nc": args.weight_nc,
+            "coverage_threshold": args.coverage_threshold,
+        },
+    }
+    write_json(results_dir / "summary.json", summary)
+    return summary
 
 
 def main() -> int:
     args = parse_args()
     repo_dir = Path(__file__).resolve().parent
-
-    deepxplore_dir = resolve_path(repo_dir, args.deepxplore_dir)
-    results_dir = resolve_path(repo_dir, args.results_dir)
-    model_paths = [
-        resolve_path(repo_dir, path)
-        for path in [args.model_a, args.model_b]
-        if path is not None
-    ]
-
-    validate_deepxplore_dir(deepxplore_dir)
-    config_path = write_run_config(
-        results_dir=results_dir,
-        deepxplore_dir=deepxplore_dir,
-        model_paths=model_paths,
-        dry_run=args.dry_run,
-    )
-
-    if args.dry_run:
-        print(f"Dry run complete. Wrote {config_path}")
-        return 0
-
-    if len(model_paths) < 2:
-        print("Error: provide --model-a and --model-b for the real run.", file=sys.stderr)
-        return 2
-
-    for index, model_path in enumerate(model_paths, start=1):
-        require_path(model_path, f"model {index}")
-
-    return run_deepxplore(
-        deepxplore_dir=deepxplore_dir,
-        model_paths=model_paths,
-        results_dir=results_dir,
-    )
+    summary = run_deepxplore(args, repo_dir)
+    print(json.dumps(summary, indent=2))
+    return 0
 
 
 if __name__ == "__main__":
