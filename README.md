@@ -44,35 +44,8 @@ python train_models.py \
 
 ## Run
 
-To create the virtual environment, install dependencies, train missing models,
-and run the DeepXplore experiment:
-
 ```bash
 ./setup_and_run.sh
-```
-
-The script uses `.venv` by default and skips training when the two checkpoint
-files already exist. To force retraining:
-
-```bash
-FORCE_TRAIN=1 ./setup_and_run.sh
-```
-
-To select a GPU explicitly:
-
-```bash
-DEVICE=cuda:0 ./setup_and_run.sh
-```
-
-The experiment can also be run manually after the environment is ready:
-
-```bash
-python test.py \
-  --deepxplore-dir ../deepxplore \
-  --seeds 30 \
-  --iterations 20 \
-  --max-visualizations 5 \
-  --device cuda:0
 ```
 
 The run writes:
