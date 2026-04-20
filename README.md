@@ -64,6 +64,10 @@ The run writes:
 - `results/disagreement_03.png`
 - `results/disagreement_04.png`
 - `results/disagreement_05.png`
+- `results/disagreement_by_threshold.json`
+- `results/disagreement_t0p2_*.png`
+- `results/disagreement_t0p5_*.png`
+- `results/disagreement_t0p9_*.png`
 
 ## Current Results
 
@@ -80,6 +84,18 @@ Coverage by threshold:
 | 0.50 | 0.966 | 0.966 | 0.966 |
 | 0.75 | 0.343 | 0.347 | 0.345 |
 | 0.90 | 0.085 | 0.092 | 0.089 |
+
+Disagreement by threshold:
+
+| Threshold | Disagreements | Rate |
+| --- | ---: | ---: |
+| 0.20 | 30 / 30 | 1.000 |
+| 0.50 | 30 / 30 | 1.000 |
+| 0.75 | 30 / 30 | 1.000 |
+| 0.90 | 30 / 30 | 1.000 |
+
+The threshold-specific disagreement visualizations keep the original 0.75
+figures and add separate examples for 0.20, 0.50, and 0.90.
 
 Many disagreements appeared in visually similar or ambiguous CIFAR-10 groups,
 especially animal classes and vehicle classes. Some original seed images already

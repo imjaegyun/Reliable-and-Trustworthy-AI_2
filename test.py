@@ -39,6 +39,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--weight-nc", type=float, default=0.2)
     parser.add_argument("--coverage-threshold", type=float, default=0.75)
     parser.add_argument("--coverage-sweep-thresholds", default="0.2,0.5,0.75,0.9")
+    parser.add_argument("--disagreement-sweep-thresholds", default="0.2,0.5,0.75,0.9")
     parser.add_argument("--max-visualizations", type=int, default=5)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--num-workers", type=int, default=0)
@@ -80,6 +81,10 @@ def parse_thresholds(value: str) -> list[float]:
 
 def threshold_key(threshold: float) -> str:
     return f"{threshold:g}"
+
+
+def threshold_filename(threshold: float) -> str:
+    return threshold_key(threshold).replace(".", "p")
 
 
 def resolve_device(device_name: str) -> torch.device:
@@ -239,10 +244,20 @@ def write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
+def run_deepxplore(
+    args: argparse.Namespace,
+    repo_dir: Path,
+    coverage_threshold: float | None = None,
+    write_summary: bool = True,
+    save_visualizations: bool = True,
+    visualization_prefix: str = "disagreement",
+    progress_desc: str = "deepxplore",
+) -> dict:
     if args.batch_size != 1:
         raise ValueError("batch-size must be 1 for gradient-based input generation")
 
+    if coverage_threshold is None:
+        coverage_threshold = args.coverage_threshold
     set_seed(args.seed)
     device = resolve_device(args.device)
     deepxplore_dir = resolve_path(repo_dir, args.deepxplore_dir)
@@ -250,7 +265,8 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
     model_b_path = resolve_path(repo_dir, args.model_b)
     results_dir = resolve_path(repo_dir, args.results_dir)
     validate_deepxplore_dir(deepxplore_dir)
-    results_dir.mkdir(parents=True, exist_ok=True)
+    if write_summary or save_visualizations:
+        results_dir.mkdir(parents=True, exist_ok=True)
 
     if args.dry_run:
         payload = {
@@ -260,7 +276,8 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
             "results_dir": str(results_dir),
             "dry_run": True,
         }
-        write_json(results_dir / "run_config.json", payload)
+        if write_summary:
+            write_json(results_dir / "run_config.json", payload)
         return payload
 
     require_path(model_a_path, "model A")
@@ -270,8 +287,8 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
     coverage_a = init_coverage(model_a, device)
     coverage_b = init_coverage(model_b, device)
     sweep_thresholds = parse_thresholds(args.coverage_sweep_thresholds)
-    if not any(abs(threshold - args.coverage_threshold) < 1e-9 for threshold in sweep_thresholds):
-        sweep_thresholds.append(args.coverage_threshold)
+    if not any(abs(threshold - coverage_threshold) < 1e-9 for threshold in sweep_thresholds):
+        sweep_thresholds.append(coverage_threshold)
         sweep_thresholds = sorted(set(sweep_thresholds))
     coverage_sweep = [
         (threshold, init_coverage(model_a, device), init_coverage(model_b, device))
@@ -281,7 +298,7 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
     disagreements = []
     saved = 0
 
-    for sample_index, (images, labels) in enumerate(tqdm(loader, desc="deepxplore")):
+    for sample_index, (images, labels) in enumerate(tqdm(loader, desc=progress_desc)):
         images = images.to(device)
         labels = labels.to(device)
         original = images.detach().clone()
@@ -290,8 +307,8 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
         label_b, conf_b = predict(model_b, images)
         activations_a = collect_activations(model_a, images)
         activations_b = collect_activations(model_b, images)
-        update_coverage(coverage_a, activations_a, args.coverage_threshold)
-        update_coverage(coverage_b, activations_b, args.coverage_threshold)
+        update_coverage(coverage_a, activations_a, coverage_threshold)
+        update_coverage(coverage_b, activations_b, coverage_threshold)
         update_sweep(coverage_sweep, activations_a, activations_b)
 
         if label_a != label_b:
@@ -326,8 +343,8 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
                 label_b, conf_b = predict(model_b, generated)
                 activations_a = collect_activations(model_a, generated)
                 activations_b = collect_activations(model_b, generated)
-                update_coverage(coverage_a, activations_a, args.coverage_threshold)
-                update_coverage(coverage_b, activations_b, args.coverage_threshold)
+                update_coverage(coverage_a, activations_a, coverage_threshold)
+                update_coverage(coverage_b, activations_b, coverage_threshold)
                 update_sweep(coverage_sweep, activations_a, activations_b)
                 if label_a != label_b:
                     break
@@ -347,8 +364,8 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
                 "l_inf_delta": (generated - original).abs().max().item(),
             }
             disagreements.append(record)
-            if saved < args.max_visualizations:
-                output_path = results_dir / f"disagreement_{saved + 1:02d}.png"
+            if save_visualizations and saved < args.max_visualizations:
+                output_path = results_dir / f"{visualization_prefix}_{saved + 1:02d}.png"
                 save_visualization(
                     output_path,
                     original,
@@ -388,18 +405,78 @@ def run_deepxplore(args: argparse.Namespace, repo_dir: Path) -> dict:
             "epsilon": args.epsilon,
             "weight_diff": args.weight_diff,
             "weight_nc": args.weight_nc,
-            "coverage_threshold": args.coverage_threshold,
+            "coverage_threshold": coverage_threshold,
             "coverage_sweep_thresholds": sweep_thresholds,
         },
     }
-    write_json(results_dir / "summary.json", summary)
+    if write_summary:
+        write_json(results_dir / "summary.json", summary)
     return summary
+
+
+def run_disagreement_threshold_sweep(
+    args: argparse.Namespace,
+    repo_dir: Path,
+    base_summary: dict | None = None,
+) -> dict:
+    thresholds = parse_thresholds(args.disagreement_sweep_thresholds)
+    if not any(abs(threshold - args.coverage_threshold) < 1e-9 for threshold in thresholds):
+        thresholds.append(args.coverage_threshold)
+        thresholds = sorted(set(thresholds))
+
+    results = {}
+    for threshold in thresholds:
+        if base_summary is not None and abs(threshold - args.coverage_threshold) < 1e-9:
+            summary = base_summary
+        else:
+            summary = run_deepxplore(
+                args,
+                repo_dir,
+                coverage_threshold=threshold,
+                write_summary=False,
+                save_visualizations=True,
+                visualization_prefix=f"disagreement_t{threshold_filename(threshold)}",
+                progress_desc=f"threshold {threshold_key(threshold)}",
+            )
+        num_seeds = summary["num_seeds"]
+        num_disagreements = summary["num_disagreements"]
+        visualizations = [
+            record["visualization"]
+            for record in summary["disagreements"][: args.max_visualizations]
+            if "visualization" in record
+        ]
+        results[threshold_key(threshold)] = {
+            "num_seeds": num_seeds,
+            "num_disagreements": num_disagreements,
+            "disagreement_rate": num_disagreements / max(num_seeds, 1),
+            "visualizations": visualizations,
+        }
+
+    return {
+        "disagreement_by_threshold": results,
+        "settings": {
+            "thresholds": thresholds,
+            "seeds": args.seeds,
+            "iterations": args.iterations,
+            "step": args.step,
+            "epsilon": args.epsilon,
+            "weight_diff": args.weight_diff,
+            "weight_nc": args.weight_nc,
+        },
+    }
 
 
 def main() -> int:
     args = parse_args()
     repo_dir = Path(__file__).resolve().parent
     summary = run_deepxplore(args, repo_dir)
+    if not summary.get("dry_run"):
+        results_dir = resolve_path(repo_dir, args.results_dir)
+        disagreement_sweep = run_disagreement_threshold_sweep(args, repo_dir, summary)
+        write_json(results_dir / "disagreement_by_threshold.json", disagreement_sweep)
+        summary["disagreement_by_threshold"] = disagreement_sweep["disagreement_by_threshold"]
+        summary["settings"]["disagreement_sweep_thresholds"] = disagreement_sweep["settings"]["thresholds"]
+        write_json(results_dir / "summary.json", summary)
     print(json.dumps(summary, indent=2))
     return 0
 
