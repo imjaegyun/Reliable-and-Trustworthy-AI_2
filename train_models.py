@@ -127,6 +127,7 @@ def evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> floa
 
 
 def train_one(seed: int, args: argparse.Namespace, repo_dir: Path) -> Path:
+    # Different seeds produce independently trained models for differential testing.
     set_seed(seed)
     device = resolve_device(args.device)
     print(f"device={device}")

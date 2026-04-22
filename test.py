@@ -100,6 +100,7 @@ def resolve_device(device_name: str) -> torch.device:
 
 
 def validate_deepxplore_dir(deepxplore_dir: Path) -> None:
+    # Keep the original DeepXplore checkout as the reference setup for the run.
     require_path(deepxplore_dir, "DeepXplore", is_dir=True)
     for relative_path in ["README.md", "ImageNet/gen_diff.py", "ImageNet/utils.py"]:
         require_path(deepxplore_dir / relative_path, f"DeepXplore {relative_path}")
@@ -126,6 +127,7 @@ def make_loader(args: argparse.Namespace, repo_dir: Path) -> DataLoader:
 
 
 def coverage_layers(model: torch.nn.Module) -> dict[str, torch.nn.Module]:
+    # Measure coverage on the four ResNet stages, using one unit per output channel.
     return {
         "layer1": model.backbone.layer1,
         "layer2": model.backbone.layer2,
@@ -165,6 +167,7 @@ def update_coverage(
     threshold: float,
 ) -> None:
     for name, output in activations.items():
+        # Normalize channel activations before applying the coverage threshold.
         values = output.detach().flatten(2).mean(dim=(0, 2))
         minimum = values.min()
         maximum = values.max()
@@ -316,6 +319,7 @@ def run_deepxplore(
         update_coverage(coverage_b, activations_b, coverage_threshold)
         update_sweep(coverage_sweep, activations_a, activations_b)
 
+        # If the seed already disagrees, save it; otherwise perturb toward disagreement.
         if label_a != label_b:
             generated = images.detach()
         else:
@@ -337,6 +341,7 @@ def run_deepxplore(
                     diff_loss = logits_b[:, target_label].mean() - logits_a[:, target_label].mean()
                 else:
                     diff_loss = logits_a[:, target_label].mean() - logits_b[:, target_label].mean()
+                # Combine differential behavior with uncovered neuron activation.
                 loss = args.weight_diff * diff_loss + args.weight_nc * neuron_loss
                 loss.backward()
                 with torch.no_grad():

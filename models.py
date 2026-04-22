@@ -35,6 +35,7 @@ class NormalizeLayer(nn.Module):
 class CIFAR10ResNet50(nn.Module):
     def __init__(self) -> None:
         super().__init__()
+        # Use a CIFAR-10 normalization layer and a 32x32-friendly ResNet stem.
         self.normalize = NormalizeLayer(CIFAR10_MEAN, CIFAR10_STD)
         self.backbone = resnet50(weights=None)
         self.backbone.conv1 = nn.Conv2d(
