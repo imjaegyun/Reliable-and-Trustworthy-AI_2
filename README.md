@@ -1,6 +1,8 @@
 # Reliable and Trustworthy AI Assignment 2
 
-## Environment
+## Problem 1: Differential Testing with DeepXplore
+
+### Environment
 
 ```bash
 conda create -n rtai-a2 python=3.10
@@ -18,7 +20,7 @@ cd Reliable-and-Trustworthy-AI_2
 
 The PyTorch packages in `requirements.txt` use CUDA 11.8 wheels.
 
-## DeepXplore
+### DeepXplore
 
 The original DeepXplore repository should be placed next to this repository:
 
@@ -33,7 +35,7 @@ implemented a PyTorch CIFAR-10/ResNet50 version in `test.py`. The implementation
 keeps the two main DeepXplore ideas: differential behavior between models and
 neuron coverage.
 
-## Models
+### Models
 
 Two CIFAR-10 ResNet50 models are included under `models/`.
 
@@ -50,7 +52,7 @@ python train_models.py \
   --device cuda:0
 ```
 
-## Run
+### Run
 
 ```bash
 ./setup_and_run.sh
@@ -69,7 +71,7 @@ The run writes:
 - `results/threshold/disagreement_t0p5_*.png`
 - `results/threshold/disagreement_t0p9_*.png`
 
-## Current Results
+### Results
 
 - Disagreement-inducing inputs: 30 / 30
 - Model A neuron coverage at threshold 0.75: 0.343
@@ -94,6 +96,8 @@ Disagreement by threshold:
 | 0.75 | 30 / 30 | 1.000 |
 | 0.90 | 30 / 30 | 1.000 |
 
+### Analysis
+
 The threshold-specific disagreement visualizations keep the original 0.75
 figures and add separate examples for 0.20, 0.50, and 0.90.
 
@@ -101,3 +105,9 @@ Many disagreements appeared in visually similar or ambiguous CIFAR-10 groups,
 especially animal classes and vehicle classes. Some original seed images already
 caused disagreement, while others required small input changes from the
 gradient-based search.
+
+## Problem 2: Connecting Attacks and Testing
+
+The short essay is provided in `report.pdf`, with the Markdown source in
+`report.md`. It discusses how FGSM/PGD-style adversarial attacks can be combined
+with DeepXplore-style differential testing and neuron coverage.
